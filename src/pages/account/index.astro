@@ -1,0 +1,111 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import ProfileForm from '../../components/account/ProfileForm';
+import PasswordForm from '../../components/account/PasswordForm';
+import ActivityList from '../../components/account/ActivityList';
+import prisma from '../../lib/db';
+import { verifyToken } from '../../lib/auth';
+
+const userId = await verifyToken(Astro.request);
+if (!userId) {
+  return Astro.redirect('/login');
+}
+
+const user = await prisma.user.findUnique({
+  where: { id: userId },
+  select: {
+    name: true,
+    email: true,
+  },
+});
+
+// Get user's recent activity
+const purchases = await prisma.purchase.findMany({
+  where: { userId },
+  orderBy: { purchasedAt: 'desc' },
+  take: 5,
+  include: {
+    item: {
+      include: {
+        wishlist: {
+          include: {
+            user: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+const wishlists = await prisma.wishlist.findMany({
+  where: { userId },
+  orderBy: { createdAt: 'desc' },
+  take: 5,
+});
+
+const familyGroups = await prisma.familyGroupMember.findMany({
+  where: { userId },
+  orderBy: { createdAt: 'desc' },
+  take: 5,
+  include: {
+    familyGroup: true,
+  },
+});
+
+// Format activities
+const activities = [
+  ...purchases.map((purchase) => ({
+    id: purchase.id,
+    type: 'purchase' as const,
+    description: `Purchased "${purchase.item.name}" from ${purchase.item.wishlist.user.name}'s wishlist`,
+    createdAt: purchase.purchasedAt.toISOString(),
+  })),
+  ...wishlists.map((wishlist) => ({
+    id: wishlist.id,
+    type: 'wishlist_created' as const,
+    description: `Created wishlist "${wishlist.title}"`,
+    createdAt: wishlist.createdAt.toISOString(),
+  })),
+  ...familyGroups.map((membership) => ({
+    id: membership.id,
+    type: 'group_joined' as const,
+    description: `Joined family group "${membership.familyGroup.name}"`,
+    createdAt: membership.createdAt.toISOString(),
+  })),
+].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+---
+
+<Layout title="Account Settings - Family Christmas List">
+  <div class="max-w-4xl mx-auto py-8">
+    <h1 class="text-3xl font-bold text-christmas-red mb-8">
+      Account Settings
+    </h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div class="md:col-span-2 space-y-8">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold text-christmas-green mb-6">
+            Profile Information
+          </h2>
+          <ProfileForm initialData={user} client:load />
+        </div>
+
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold text-christmas-green mb-6">
+            Change Password
+          </h2>
+          <PasswordForm client:load />
+        </div>
+      </div>
+
+      <div class="md:col-span-1">
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold text-christmas-green mb-6">
+            Recent Activity
+          </h2>
+          <ActivityList activities={activities} client:load />
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>

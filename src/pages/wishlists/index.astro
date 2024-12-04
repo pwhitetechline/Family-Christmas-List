@@ -1,0 +1,79 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import WishlistForm from '../../components/wishlist/WishlistForm';
+import prisma from '../../lib/db';
+import { verifyToken } from '../../lib/auth';
+
+// Get user's wishlists
+const userId = await verifyToken(Astro.request);
+if (!userId) {
+  return Astro.redirect('/login');
+}
+
+const wishlists = await prisma.wishlist.findMany({
+  where: { userId },
+  include: {
+    items: true,
+  },
+});
+---
+
+<Layout title="My Wishlists - Family Christmas List">
+  <div class="max-w-4xl mx-auto py-8">
+    <div class="flex justify-between items-center mb-8">
+      <h1 class="text-3xl font-bold text-christmas-red">
+        My Wishlists
+      </h1>
+      
+      <button
+        id="newWishlistBtn"
+        class="px-4 py-2 bg-christmas-green text-white rounded-lg hover:bg-opacity-90"
+      >
+        Create New Wishlist
+      </button>
+    </div>
+
+    <div id="wishlistForm" class="mb-8 hidden">
+      <WishlistForm client:load />
+    </div>
+
+    <div class="space-y-6">
+      {wishlists.map((wishlist) => (
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-2xl font-semibold text-christmas-green">
+              {wishlist.title}
+            </h2>
+            <a
+              href={`/wishlists/${wishlist.id}`}
+              class="text-christmas-red hover:underline"
+            >
+              View Details
+            </a>
+          </div>
+
+          <p class="text-gray-600">
+            {wishlist.items.length} items
+          </p>
+        </div>
+      ))}
+
+      {wishlists.length === 0 && (
+        <p class="text-center text-gray-600">
+          You haven't created any wishlists yet. Click the button above to create your first one!
+        </p>
+      )}
+    </div>
+  </div>
+
+  <script>
+    const newWishlistBtn = document.getElementById('newWishlistBtn');
+    const wishlistForm = document.getElementById('wishlistForm');
+
+    if (newWishlistBtn && wishlistForm) {
+      newWishlistBtn.addEventListener('click', () => {
+        wishlistForm.classList.toggle('hidden');
+      });
+    }
+  </script>
+</Layout>

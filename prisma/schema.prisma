@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  wishlists     Wishlist[]
+  familyGroups  FamilyGroupMember[]
+  purchases     Purchase[]
+}
+
+model FamilyGroup {
+  id          String    @id @default(cuid())
+  name        String
+  createdAt   DateTime  @default(now())
+  members     FamilyGroupMember[]
+}
+
+model FamilyGroupMember {
+  id            String      @id @default(cuid())
+  userId        String
+  familyGroupId String
+  role          String      // "admin" or "member"
+  user          User        @relation(fields: [userId], references: [id])
+  familyGroup   FamilyGroup @relation(fields: [familyGroupId], references: [id])
+  createdAt     DateTime    @default(now())
+
+  @@unique([userId, familyGroupId])
+}
+
+model Wishlist {
+  id          String    @id @default(cuid())
+  title       String
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  items       WishlistItem[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model WishlistItem {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  url         String?
+  price       Float?
+  priority    Int       @default(1)
+  wishlistId  String
+  wishlist    Wishlist  @relation(fields: [wishlistId], references: [id])
+  purchases   Purchase[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Purchase {
+  id            String       @id @default(cuid())
+  itemId        String
+  userId        String
+  item          WishlistItem @relation(fields: [itemId], references: [id])
+  purchasedBy   User         @relation(fields: [userId], references: [id])
+  purchasedAt   DateTime     @default(now())
+  isPurchased   Boolean      @default(true)
+}

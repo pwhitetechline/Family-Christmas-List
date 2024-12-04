@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import RegisterForm from '../components/auth/RegisterForm';
+---
+
+<Layout title="Register - Family Christmas List">
+  <div class="max-w-md mx-auto py-12">
+    <h1 class="text-3xl font-bold text-center text-christmas-red mb-8">
+      Create Your Account
+    </h1>
+    
+    <RegisterForm client:load />
+    
+    <p class="mt-4 text-center text-gray-600">
+      Already have an account?
+      <a href="/login" class="text-christmas-red hover:text-opacity-90">
+        Sign in here
+      </a>
+    </p>
+  </div>
+</Layout>

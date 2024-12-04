@@ -1,0 +1,46 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Family Christmas List">
+  <div class="text-center py-12">
+    <h1 class="text-4xl font-bold text-christmas-red mb-4">
+      Welcome to Family Christmas List
+    </h1>
+    <p class="text-xl text-gray-600 mb-8">
+      Organize your family's Christmas wishlists and make gift-giving a breeze!
+    </p>
+    
+    <div class="grid md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-christmas-green mb-4">Create Lists</h2>
+        <p class="text-gray-600">
+          Make your wishlist and share it with your family members.
+        </p>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-christmas-green mb-4">Track Gifts</h2>
+        <p class="text-gray-600">
+          Mark items as purchased to avoid duplicate gifts.
+        </p>
+      </div>
+      
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-semibold text-christmas-green mb-4">Family Groups</h2>
+        <p class="text-gray-600">
+          Organize lists by family groups and maintain privacy.
+        </p>
+      </div>
+    </div>
+    
+    <div class="mt-12">
+      <a
+        href="/register"
+        class="bg-christmas-red text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-opacity-90 transition-colors"
+      >
+        Get Started
+      </a>
+    </div>
+  </div>
+</Layout>

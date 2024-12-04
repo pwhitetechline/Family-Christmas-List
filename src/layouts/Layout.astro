@@ -1,0 +1,39 @@
+---
+interface Props {
+  title: string;
+}
+
+const { title } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="description" content="Family Christmas List Manager" />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="generator" content={Astro.generator} />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen bg-gray-50">
+    <header class="bg-christmas-red text-white shadow-md">
+      <nav class="container mx-auto px-4 py-3 flex justify-between items-center">
+        <a href="/" class="text-2xl font-bold">🎄 Family Christmas</a>
+        <div class="space-x-4">
+          <a href="/wishlists" class="hover:text-christmas-gold">My Lists</a>
+          <a href="/family" class="hover:text-christmas-gold">Family Groups</a>
+          <a href="/account" class="hover:text-christmas-gold">Account</a>
+        </div>
+      </nav>
+    </header>
+    <main class="container mx-auto px-4 py-8">
+      <slot />
+    </main>
+    <footer class="bg-gray-100 mt-auto">
+      <div class="container mx-auto px-4 py-6 text-center text-gray-600">
+        <p>&copy; {new Date().getFullYear()} Family Christmas List. Made with ❤️ for families.</p>
+      </div>
+    </footer>
+  </body>
+</html>

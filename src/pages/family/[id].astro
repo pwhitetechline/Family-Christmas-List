@@ -1,0 +1,140 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import MemberList from '../../components/family/MemberList';
+import MemberInviteForm from '../../components/family/MemberInviteForm';
+import prisma from '../../lib/db';
+import { verifyToken } from '../../lib/auth';
+
+const { id } = Astro.params;
+const userId = await verifyToken(Astro.request);
+
+if (!userId) {
+  return Astro.redirect('/login');
+}
+
+const groupMembership = await prisma.familyGroupMember.findFirst({
+  where: {
+    familyGroupId: id,
+    userId,
+  },
+});
+
+if (!groupMembership) {
+  return Astro.redirect('/family');
+}
+
+const familyGroup = await prisma.familyGroup.findUnique({
+  where: { id },
+  include: {
+    members: {
+      include: {
+        user: {
+          select: {
+            name: true,
+            email: true,
+          },
+        },
+      },
+    },
+  },
+});
+
+if (!familyGroup) {
+  return Astro.redirect('/family');
+}
+
+const isAdmin = groupMembership.role === 'admin';
+---
+
+<Layout title={`${familyGroup.name} - Family Christmas List`}>
+  <div class="max-w-4xl mx-auto py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h1 class="text-3xl font-bold text-christmas-red">
+            {familyGroup.name}
+          </h1>
+          <p class="text-gray-600 mt-1">
+            {familyGroup.members.length} members
+          </p>
+        </div>
+
+        {isAdmin && (
+          <button
+            id="inviteBtn"
+            class="px-4 py-2 bg-christmas-green text-white rounded-lg hover:bg-opacity-90"
+          >
+            Invite Members
+          </button>
+        )}
+      </div>
+
+      {isAdmin && (
+        <div id="inviteForm" class="mb-6 hidden">
+          <MemberInviteForm
+            groupId={id}
+            client:load
+          />
+        </div>
+      )}
+
+      <MemberList
+        members={familyGroup.members}
+        currentUserId={userId}
+        isAdmin={isAdmin}
+        onRemoveMember={async (memberId) => {
+          try {
+            await fetch(`/api/family-groups/${id}/members/${memberId}`, {
+              method: 'DELETE',
+            });
+            window.location.reload();
+          } catch (error) {
+            console.error('Remove member error:', error);
+          }
+        }}
+        onUpdateRole={async (memberId, newRole) => {
+          try {
+            await fetch(`/api/family-groups/${id}/members/${memberId}`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ role: newRole }),
+            });
+            window.location.reload();
+          } catch (error) {
+            console.error('Update role error:', error);
+          }
+        }}
+        client:load
+      />
+
+      <div class="mt-8 border-t border-gray-200 pt-6">
+        <h2 class="text-xl font-semibold text-christmas-green mb-4">
+          Shared Wishlists
+        </h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {familyGroup.members.map((member) => (
+            <a
+              href={`/wishlists?userId=${member.userId}`}
+              class="block p-4 border rounded-lg hover:border-christmas-red transition-colors"
+            >
+              <h3 class="font-medium text-gray-900">
+                {member.user.name}'s Wishlist
+              </h3>
+            </a>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const inviteBtn = document.getElementById('inviteBtn');
+    const inviteForm = document.getElementById('inviteForm');
+
+    if (inviteBtn && inviteForm) {
+      inviteBtn.addEventListener('click', () => {
+        inviteForm.classList.toggle('hidden');
+      });
+    }
+  </script>
+</Layout>

@@ -1,0 +1,21 @@
+---
+import Layout from '../layouts/Layout.astro';
+import LoginForm from '../components/auth/LoginForm';
+---
+
+<Layout title="Login - Family Christmas List">
+  <div class="max-w-md mx-auto py-12">
+    <h1 class="text-3xl font-bold text-center text-christmas-red mb-8">
+      Sign In to Your Account
+    </h1>
+    
+    <LoginForm client:load />
+    
+    <p class="mt-4 text-center text-gray-600">
+      Don't have an account?
+      <a href="/register" class="text-christmas-red hover:text-opacity-90">
+        Register here
+      </a>
+    </p>
+  </div>
+</Layout>
